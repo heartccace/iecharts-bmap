@@ -1,0 +1,8 @@
+<div class="card card-accent-info" ngResizable >
+      <h4 class="card-title">[autoResize] option</h4>
+      <button class="btn btn-outline-primary" (click)="autoResize = !autoResize">{{autoResize ? 'Disable' : 'Enable' }}</button>
+      <div ngResizable class="resizable-widget mt-4 pb-4" rzContainment="#container" rzHandles="all">
+        <div class="widget-header">Resizable</div>
+        <div echarts [options]="options" [autoResize]="autoResize" style="height: 100%"></div>
+      </div>
+  </div>
