@@ -8,7 +8,18 @@ declare var BMap: any;
 declare var echarts: any;
 declare var BMAP_ANCHOR_TOP_LEFT: any;
 declare var BMAP_NAVIGATION_CONTROL_LARGE: any;
+declare var BMapLib: any;
 
+declare var BMAPLIB_TAB_SEARCH;   // 周边检索
+declare var BMAPLIB_TAB_TO_HERE;  // 到这里去
+declare var BMAPLIB_TAB_FROM_HERE; // 从这里出发
+declare var BMAP_ANCHOR_TOP_RIGHT;
+
+declare var BMAP_DRAWING_CIRCLE;
+declare var BMAP_DRAWING_MARKER;
+declare var BMAP_DRAWING_POLYLINE;
+declare var BMAP_DRAWING_POLYGON;
+declare var BMAP_DRAWING_RECTANGLE;
 
 @Component({
   selector: 'app-bmap',
@@ -16,6 +27,7 @@ declare var BMAP_NAVIGATION_CONTROL_LARGE: any;
   styleUrls: ['./bmap.component.scss']
 })
 export class BmapComponent implements OnInit {
+  constructor(private el: ElementRef) { }
   // 模拟标记数据-效果图一
   markerArr = [
     {
@@ -105,7 +117,12 @@ export class BmapComponent implements OnInit {
   ];
   // buildMarkers主要用于标记点的移除
   buildMarkers = [];
+  overlays = [];
   myChart;
+  bmap: any;
+  drawingManager: any;
+
+  searchInfoWindow: any;
   opt = {
     bmap: {
       center: [120.13066322374, 30.240018034923],
@@ -277,21 +294,96 @@ export class BmapComponent implements OnInit {
       data: [[120, 30, 1]]
     }]
   };
-  constructor(private el: ElementRef) { }
+
+  styleOptions = {
+    strokeColor: 'red',    // 边线颜色。
+    fillColor: 'red',      // 填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeWeight: 3,       // 边线的宽度，以像素为单位。
+    strokeOpacity: 0.8,    // 边线透明度，取值范围0 - 1。
+    fillOpacity: 0.6,      // 填充的透明度，取值范围0 - 1。
+    strokeStyle: 'solid' // 边线的样式，solid或dashed。
+  };
+
+  // 信息窗口的内容定义
+  content = '<div style="margin:0;line-height:20px;padding:2px;">' +
+    '地址：北京市海淀区上地十街10号<br/>电话：(010)59928888<br/>简介：百度大厦位于北京市海淀区西二旗地铁站附近，为百度公司综合研发及办公总部。' +
+    '</div>';
   ngOnInit() {
     this.myChart = echarts.init(document.getElementById('map')); // 先初始化 Echarts
     // this.myChart.setOption(this.opt);
     this.myChart.setOption(this.setOptions([78.473184, 24.041486], 4, this.setSeries(this.echartsDatas)));
-    const bmap = this.myChart.getModel().getComponent('bmap').getBMap(); // 调用Echarts的方法来初始化bmap
+    this.bmap = this.myChart.getModel().getComponent('bmap').getBMap(); // 调用Echarts的方法来初始化bmap
     // bmap.setMaxZoom(5);
-    bmap.setMinZoom(1);
+    this.bmap.setMinZoom(1);
     // bmap.addControl(new BMap.MapTypeControl());
-    this.setMap(bmap);
+    this.setMap(this.bmap);
     // const map = new BMap.Map('map'); // 创建地图实例
     // const point = new BMap.Point(116.404, 39.915); // 创建点坐标
     // map.centerAndZoom(point, 19); // 初始化地图，设置中心点坐标和地图级别
     // map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
 
+    // 创建带信息窗口的poi点
+    // tslint:disable-next-line: prefer-const
+    this.searchInfoWindow = new BMapLib.SearchInfoWindow(this.bmap, this.content, {
+      title: '百度大厦',      // 标题
+      width: 290,             // 宽度
+      height: 105,              // 高度
+      panel: 'panel',         // 检索结果面板
+      enableAutoPan: true,     // 自动平移
+      searchTypes: [
+        BMAPLIB_TAB_SEARCH,   // 周边检索
+        BMAPLIB_TAB_TO_HERE,  // 到这里去
+        BMAPLIB_TAB_FROM_HERE // 从这里出发
+      ]
+    });
+
+    // 实例化鼠标绘制工具
+    this.drawingManager = new BMapLib.DrawingManager(this.bmap, {
+      isOpen: false, // 是否开启绘制模式
+      enableDrawingTool: true, // 是否显示工具栏
+      drawingToolOptions: {
+        anchor: BMAP_ANCHOR_TOP_RIGHT, // 位置
+        offset: new BMap.Size(5, 5), // 偏离值
+        scale: 0.8 // 工具栏缩放比例
+      },
+      circleOptions: this.styleOptions, // 圆的样式
+      polylineOptions: this.styleOptions, // 线的样式
+      polygonOptions: this.styleOptions, // 多边形的样式
+      rectangleOptions: this.styleOptions // 矩形的样式
+    });
+    console.log(this.overlays);
+    // 添加鼠标绘制工具监听事件，用于获取绘制结果
+    this.drawingManager.addEventListener('overlaycomplete', (e: any) => {
+      this.overlaycomplete(e, this.overlays);
+    });
+
+
+
+    (this.getElment('getLastOverLay') as any).onclick = () => {
+      // tslint:disable-next-line: no-use-before-declare
+      if (this.overlays.length) {
+        // tslint:disable-next-line: no-use-before-declare
+        alert(this.overlays[this.overlays.length - 1]);
+      } else {
+        alert('没有覆盖物');
+      }
+    };
+
+    this.getElment('showPanelBtn').onclick = () => {
+      if (this.isPanelShow === false) {
+        this.isPanelShow = true;
+        this.getElment('showPanelBtn').style.right = '230px';
+        this.getElment('panelWrap').style.width = '230px';
+        this.getElment('map').style.marginRight = '230px';
+        this.getElment('showPanelBtn').innerHTML = '隐藏绘制结果信息<br/>>';
+      } else {
+        this.isPanelShow = false;
+        this.getElment('showPanelBtn').style.right = '0px';
+        this.getElment('panelWrap').style.width = '0px';
+        this.getElment('map').style.marginRight = '0px';
+        this.getElment('showPanelBtn').innerHTML = '显示绘制结果信息<br/><';
+      }
+    };
   }
 
   // echarts配置项，http://echarts.baidu.com/option.html#title
@@ -621,4 +713,68 @@ export class BmapComponent implements OnInit {
     }
   }
 
+  // 回调获得覆盖物信息
+  overlaycomplete(e: any, overlays: any) {
+    overlays.push(e.overlay);
+    let result = '';
+    result = '<p>';
+    result += e.drawingMode + ':';
+    // tslint:disable-next-line: triple-equals
+    if (e.drawingMode == BMAP_DRAWING_MARKER) {
+      result += ' 坐标：' + e.overlay.getPosition().lng + ',' + e.overlay.getPosition().lat;
+      if ((this.getElment('isInfowindow') as any).checked) {
+        this.searchInfoWindow.open(e.overlay);
+      }
+    }
+    if (e.drawingMode === BMAP_DRAWING_CIRCLE) {
+      result += ' 半径：' + e.overlay.getRadius();
+      result += ' 中心点：' + e.overlay.getCenter().lng + ',' + e.overlay.getCenter().lat;
+    }
+    if (e.drawingMode === BMAP_DRAWING_POLYLINE || e.drawingMode === BMAP_DRAWING_POLYGON || e.drawingMode === BMAP_DRAWING_RECTANGLE) {
+      result += ' 所画的点个数：' + e.overlay.getPath().length;
+    }
+    result += '</p>';
+    this.getElment('showOverlayInfo').style.display = 'none';
+    this.getElment('panel').innerHTML += result; // 将绘制的覆盖物信息结果输出到结果面板
+  }
+
+  clearAll() {
+    // tslint:disable-next-line: prefer-for-of
+    for (let i = 0; i < this.overlays.length; i++) {
+      this.bmap.removeOverlay(this.overlays[i]);
+    }
+    this.overlays.length = 0;
+  }
+
+
+  getElment(id) {
+    return document.getElementById(id);
+  }
+
+  // tslint:disable-next-line: member-ordering
+  isPanelShow = false;
+
+
+  alertFun() {
+    alert(this.overlays.length);
+  }
+
+  openDraw() {
+    this.drawingManager.open();
+  }
+
+  closeDraw() {
+    this.drawingManager.close();
+  }
+
+  enableCalculate() {
+    this.drawingManager.enableCalculate();
+  }
+
+  disableCalculate() {
+    this.drawingManager.disableCalculate();
+  }
+  setDrawingMode(flag) {
+    this.drawingManager.setDrawingMode(flag);
+  }
 }

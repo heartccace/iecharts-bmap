@@ -1,6 +1,76 @@
 <!-- <baidu-map [options]="opts">
     <marker-clusterer [options]="clustererOptions" (loaded)="markerClustererLoaded($event)"></marker-clusterer>
 </baidu-map> -->
-<div  id = "map" style="height:974px;width: 2000px"></div>
+<!-- <div  id = "map" style="height:974px;width: 2000px"></div> -->
+<div id="allmap" style="overflow:hidden;zoom:1;position:relative;">
+    <div id="map" style="height:974px;-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;"></div>
+    <div id="showPanelBtn"
+        style="position:absolute;font-size:14px;top:50%;margin-top:-95px;right:0px;width:20px;padding:10px 10px;color:#999;cursor:pointer;text-align:center;height:170px;background:rgba(255,255,255,0.9);-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;font-family:'微软雅黑';font-weight:bold;">
+        显示检索结果面板<br />
+    </div>
+    <div id="panelWrap"
+        style="width:0px;position:absolute;top:0px;right:0px;height:100%;overflow:auto;-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;">
+        <div style="width:20px;height:200px;margin:-100px 0 0 -10px;color:#999;position:absolute;opacity:0.5;top:50%;left:50%;"
+            id="showOverlayInfo">此处用于展示覆盖物信息</div>
+        <div id="panel" style="position:absolute;"></div>
+    </div>
+</div>
 
+<div id="result">
+    <dl>
 
+        <dt>绘制工具功能</dt>
+        <dd>
+            <ul>
+                <li><label><input type="radio" name="openClose1" (click)="openDraw()" />打开</label>
+                    <label><input type="radio" name="openClose1" (click)="closeDraw()"
+                            checked="checked" />关闭</label></li>
+            </ul>
+        </dd>
+        <dt>是否进行线或面积的计算(单位米)</dt>
+        <dd>
+            <ul>
+                <li><label><input type="radio" name="openClose" (click)="enableCalculate()" />打开</label>
+                    <label><input type="radio" name="openClose" (click)="disableCalculate()"
+                            checked="checked" />关闭</label></li>
+            </ul>
+        </dd>
+        <dt>绘制功能</dt>
+        <dd>
+            <ul>
+                <li>
+                    <label><input type="radio" name="drawmode"
+                            (click)="setDrawingMode(BMAP_DRAWING_MARKER)" checked="checked" />画点</label>
+                    <input type="checkbox" id="isInfowindow" /> 是否带信息窗口
+                </li>
+                <li>
+                    <label><input type="radio" name="drawmode"
+                            (click)="setDrawingMode(BMAP_DRAWING_CIRCLE)" />画圆</label>
+                </li>
+                <li>
+                    <label><input type="radio" name="drawmode"
+                            (click)="setDrawingMode(BMAP_DRAWING_POLYLINE)" />画线</label>
+                </li>
+                <li>
+                    <label><input type="radio" name="drawmode"
+                            (click)="setDrawingMode(BMAP_DRAWING_POLYGON)" />画多边形</label>
+                </li>
+                <li>
+                    <label><input type="radio" name="drawmode"
+                            (click)="setDrawingMode(BMAP_DRAWING_RECTANGLE)" />画矩形</label>
+                </li>
+            </ul>
+        </dd>
+        <dt>覆盖物操作</dt>
+        <dd>
+            <ul>
+                <li>
+                    <input type="button" value="获取绘制的覆盖物个数" (click)="alertFun()" />
+                    <input type="button" value="清除所有覆盖物" (click)="clearAll()" />
+                    <input type="button" value="获取最后一个覆盖物信息" id="getLastOverLay" />
+                </li>
+            </ul>
+        </dd>
+    </dl>
+
+</div>

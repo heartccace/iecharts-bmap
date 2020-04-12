@@ -1,5 +1,28 @@
-baidu-map {
-    width: 800px;
-    height: 290px;
-    display: block;
-}
+// baidu-map {
+//     width: 800px;
+//     height: 290px;
+//     display: block;
+// }
+body, html{width: 100%;height: 100%;overflow: hidden;margin:0;}  
+#allmap {margin-right: 300px;height: 100%;overflow: hidden;}  
+#result {border-left:1px dotted #999;height:100%;width:295px;position:absolute;top:0px;right:0px;font-size:12px;}  
+dl,dt,dd,ul,li{  
+    margin:0;  
+    padding:0;  
+    list-style:none;  
+}  
+p{font-size:12px;}  
+dt{  
+    font-size:14px;  
+    font-family:"微软雅黑";  
+    font-weight:bold;  
+    border-bottom:1px dotted #000;  
+    padding:5px 0 5px 5px;  
+    margin:5px 0;  
+}  
+dd{  
+    padding:5px 0 0 5px;  
+}  
+li{  
+    line-height:28px;  
+} 
